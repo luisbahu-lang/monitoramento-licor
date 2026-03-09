@@ -1,37 +1,8 @@
-name: Coleta Horaria
-on:
-  schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-
-jobs:
-  run-automation:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Baixar codigo
-        uses: actions/checkout@v3
-
-      - name: Instalar Python Novo
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10' # Versão que aceita o seu código original
-
-      - name: Instalar Bibliotecas
-        run: pip install requests pandas python-dateutil
-
-      - name: Executar Script
-        env:
-          LICOR_TOKEN: ${{ secrets.LICOR_TOKEN }}
-        run: python main.py
-
-      - name: Salvar Arquivos
+- name: Salvar Dados no Historico
         run: |
           git config --local user.email "bot@github.com"
-          git config --local user.name "Bot Coletor"
-          mkdir -p dados_chuva
-          git add dados_chuva/*.csv || echo "Sem arquivos novos"
-          git commit -m "Auto update $(date)" || exit 0
+          git config --local user.name "Bot Engenheiro"
+          git pull origin main # Garante que ele pegue o arquivo atualizado antes de salvar
+          git add historico_estacao.csv
+          git commit -m "Update master data: $(date)" || exit 0
           git push
