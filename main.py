@@ -20,6 +20,7 @@ def api_get(path, params=None):
 
 if __name__ == "__main__":
     now = datetime.now(timezone.utc)
+    # Pega os dados da última hora
     start = (now - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
     end = now.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
         df_raw = pd.json_normalize(data_payload["data"])
         
         if not df_raw.empty:
-            # Pivot para organizar colunas
+            # 1. Transformar linhas em colunas (Pivot)
             df_new = df_raw.pivot_table(
                 index='timestamp', 
                 columns='sensor_measurement_type', 
@@ -37,13 +38,26 @@ if __name__ == "__main__":
                 aggfunc='first'
             ).reset_index()
 
+            # 2. Renomear e formatar números
             df_new = df_new.rename(columns={'timestamp': 'Data_Hora'})
             
-            # Garante que os números sejam decimais limpos
             for col in df_new.columns:
                 if col != 'Data_Hora':
+                    # Converte para número e arredonda para 2 casas decimais
                     df_new[col] = pd.to_numeric(df_new[col], errors='coerce').round(2)
 
-            # Salva o arquivo (Como deletamos o anterior, ele criará um novo limpo)
-            df_new.to_csv(MASTER_FILE, index=False, encoding="utf-8-sig")
-            print("Novo arquivo criado com sucesso!")
+            # 3. Gerenciar o arquivo Histórico
+            if os.path.exists(MASTER_FILE):
+                try:
+                    # Tenta ler com o separador correto
+                    df_old = pd.read_csv(MASTER_FILE, sep=';')
+                    df_final = pd.concat([df_old, df_new]).drop_duplicates(subset=['Data_Hora'])
+                except:
+                    # Se der erro (arquivo antigo sujo), começa um novo
+                    df_final = df_new
+            else:
+                df_final = df_new
+            
+            # 4. SALVAR com ponto e vírgula (Crucial para Google Sheets Uruguai)
+            df_final.to_csv(MASTER_FILE, index=False, sep=';', encoding="utf-8-sig")
+            print("Processamento concluído: Arquivo salvo com separador ';'")
