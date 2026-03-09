@@ -29,7 +29,7 @@ if __name__ == "__main__":
         df_raw = pd.json_normalize(data_payload["data"])
         
         if not df_raw.empty:
-            # 1. Transforma linhas em colunas (Pivot)
+            # Pivot para organizar colunas
             df_new = df_raw.pivot_table(
                 index='timestamp', 
                 columns='sensor_measurement_type', 
@@ -37,21 +37,13 @@ if __name__ == "__main__":
                 aggfunc='first'
             ).reset_index()
 
-            # 2. Renomeia e limpa números
             df_new = df_new.rename(columns={'timestamp': 'Data_Hora'})
             
+            # Garante que os números sejam decimais limpos
             for col in df_new.columns:
                 if col != 'Data_Hora':
-                    # Converte para número e arredonda para 2 casas decimais
                     df_new[col] = pd.to_numeric(df_new[col], errors='coerce').round(2)
 
-            # 3. Salva ou Atualiza o arquivo
-            if os.path.exists(MASTER_FILE):
-                df_old = pd.read_csv(MASTER_FILE)
-                df_final = pd.concat([df_old, df_new]).drop_duplicates(subset=['Data_Hora'])
-            else:
-                df_final = df_new
-            
-            # Salva garantindo que o Sheets entenda (utf-8-sig)
-            df_final.to_csv(MASTER_FILE, index=False, encoding="utf-8-sig")
-            print("Dados processados com sucesso!")
+            # Salva o arquivo (Como deletamos o anterior, ele criará um novo limpo)
+            df_new.to_csv(MASTER_FILE, index=False, encoding="utf-8-sig")
+            print("Novo arquivo criado com sucesso!")
