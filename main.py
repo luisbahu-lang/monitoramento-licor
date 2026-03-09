@@ -27,7 +27,7 @@ OUTPUT_CSV = DATA_DIR / f"chuva_{now.strftime('%Y%m%d_%H')}.csv"
 # SUAS FUNÇÕES ORIGINAIS (INTEGRADAS)
 # ============================================
 
-def extract_ids_from_link(link: str):
+def extract_ids_from_link(link):
     device_uuid, tail_id = None, None
     m1 = re.search(r"/devices/([0-9a-fA-F-]{36})", link)
     if m1: device_uuid = m1.group(1)
