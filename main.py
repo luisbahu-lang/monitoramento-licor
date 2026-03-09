@@ -35,7 +35,7 @@ def extract_ids_from_link(link: str):
     if m2: tail_id = m2.group(1)
     return device_uuid, tail_id
 
-def api_get(path: str, params: dict | None = None):
+def api_get(path, params=None):
     url = f"{BASE_URL}{path}"
     r = session.get(url, params=params, timeout=60)
     try:
@@ -44,13 +44,13 @@ def api_get(path: str, params: dict | None = None):
     if not r.ok: raise RuntimeError(f"Erro HTTP {r.status_code}")
     return payload
 
-def parse_utc(s: str) -> datetime:
+def parse_utc(s):
     return datetime.strptime(s, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
 
-def fmt_utc(dt: datetime) -> str:
+def fmt_utc(dt):
     return dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-def daterange_chunks(start_utc: str, end_utc: str, chunk_hours: int = 24):
+def daterange_chunks(start_utc, end_utc, chunk_hours=24):
     start, end = parse_utc(start_utc), parse_utc(end_utc)
     cur = start
     while cur <= end:
@@ -67,7 +67,7 @@ def flatten_nodes(obj, path="root"):
         for i, v in enumerate(obj): out.extend(flatten_nodes(v, f"{path}[{i}]"))
     return out
 
-def get_first_present(node: dict, keys: list[str]):
+def get_first_present(node, keys):
     for k in keys:
         if k in node and node[k] is not None and str(node[k]).strip(): return str(node[k]).strip()
     return None
