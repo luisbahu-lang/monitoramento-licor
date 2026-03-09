@@ -1,8 +1,38 @@
-- name: Salvar Dados no Historico
+name: Coleta Horaria
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout do codigo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Bibliotecas
+        run: pip install pandas requests
+
+      - name: Executar Script
+        env:
+          LICOR_TOKEN: ${{ secrets.LICOR_TOKEN }}
+        run: python main.py
+
+      - name: Salvar Dados no Historico
         run: |
           git config --local user.email "bot@github.com"
           git config --local user.name "Bot Engenheiro"
-          git pull origin main # Garante que ele pegue o arquivo atualizado antes de salvar
-          git add historico_estacao.csv
-          git commit -m "Update master data: $(date)" || exit 0
+          git add historico_estacao.csv || echo "Arquivo nao encontrado"
+          git commit -m "Sincronização: $(date)" || exit 0
           git push
